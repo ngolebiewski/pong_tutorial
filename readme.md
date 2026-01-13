@@ -554,7 +554,7 @@ func main() {
 
 ## Step 5: Make it Fullscreen
 
-Quick! Just add this in to the handleInput() function and you're all set. Note how this uses IsKeyJustPressed. Otherwise, pressing 'F' would pick up multiple taps, and would toggle a whole bunch of times.
+Quick! Just add this in to the handleInput() function and you're all set. Note how this uses IsKeyJustPressed. Otherwise, pressing 'F' would pick up multiple taps, and would toggle a whole bunch of times. Note that IsKeyJustPressed uses a new to us package within ebiten, the inputil.
 
 ```go
 // Fullscreen on/off -- easy!
@@ -562,3 +562,138 @@ Quick! Just add this in to the handleInput() function and you're all set. Note h
 		ebiten.SetFullscreen(!ebiten.IsFullscreen())
 	}
 ```
+
+No need to show all the code here. That was an easy step.
+
+## Step 6: Have a ball
+
+![screenshot: 2 paddles and a ball in the center. This is Pong!](images/06_have_a_ball.png)
+
+Good news, we're basically just making a really tiny paddle. Maybe you will want to replace the ball with the Go Gopher later on, it is up to you, in that case you would make it an *ebiten.image, but lets just make this a little square.
+
+Where the ball expands upon the paddle, is that it will hold velocity (we want the ball to get faster on each hit during a volley) and not only do we need to track the ball's x,y coordinates, we need to track the delta X and the delta Y --> how fast the ball is changing in each direction. That is a way EASIER way to approach it than tracking radians and doing heavier math calculations. This is Pong, it was first ~~published~~ manufactured and released in arcades by Atari on November 29, 1972
+source: https://en.wikipedia.org/wiki/Pong
+
+Let's add in a ball struct and start it out at the center of the screen, note that we will create the ball in our reset function as well. As it follows along so closely to what we did for the paddles, I'll just share all the code. As of Step 5, I am pushing each step as a commit in GitHub, so you could track it all by looking at the commits. 
+
+All the code:
+```go
+package main
+
+import (
+	"image/color"
+	"log"
+
+	"github.com/hajimehoshi/ebiten/v2"
+	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
+	"github.com/hajimehoshi/ebiten/v2/inpututil"
+	"github.com/hajimehoshi/ebiten/v2/vector"
+)
+
+// we'll just keep our constant variables for game play up here for clarity.
+// Best practice would be to add to the Game struct and have a NewGame function return a new game before
+// starting the game loop
+
+const (
+	sW           = 320
+	sH           = 240
+	paddleWidth  = 5.0
+	paddleHeight = 50.0
+	speed        = 4.0
+	ballWidth    = 4.0
+)
+
+var p1 Paddle
+var p2 Paddle
+var b Ball
+
+type Game struct{}
+
+type Paddle struct {
+	x      float32
+	y      float32
+	width  float32
+	height float32
+}
+type Ball struct {
+	x     float32
+	y     float32
+	width float32 // It is a square, width = length
+	dx    float32 // delta x
+	dy    float32 // delta y
+	v     float32 // velocity
+}
+
+// Sets the initial values for the player and ball entities
+func reset() {
+	// Let's center the Y value, which is half the screen height - half the paddle height!
+	p1 = Paddle{5.0, sH/2 - paddleHeight/2, paddleWidth, paddleHeight}
+	p2 = Paddle{sW - 5.0 - paddleWidth, sH/2 - paddleHeight/2, paddleWidth, paddleHeight}
+	b = Ball{sW/2 - ballWidth/2, sH/2 - ballWidth/2, ballWidth, 0, 0, 1}
+}
+
+func (p Paddle) drawPaddle(screen *ebiten.Image) {
+	// vector.FillRect(screen, 5, 20, 10, 50, color.White, false) // was this previously
+	vector.FillRect(screen, p.x, p.y, p.width, p.height, color.White, false)
+}
+
+func (b Ball) drawBall(screen *ebiten.Image) {
+	vector.FillRect(screen, b.x, b.y, b.width, b.width, color.White, false)
+}
+func handleInput() {
+	// PLAYER CONTROLS
+
+	//Player 1 up
+	if ebiten.IsKeyPressed(ebiten.KeyW) {
+		p1.y = max(p1.y-speed, 0) //clamps to top of screen
+	}
+	//Player 1 down
+	if ebiten.IsKeyPressed(ebiten.KeyS) {
+		p1.y = min(p1.y+speed, sH-p1.height) // clamps to bottom of screen, taking the paddleHeight into account since the x,y is the TOP/left corner.
+	}
+
+	//Player 2 up
+	if ebiten.IsKeyPressed(ebiten.KeyArrowUp) {
+		p2.y = max(p2.y-speed, 0) //clamps to top of screen
+	}
+	//Player 2 down
+	if ebiten.IsKeyPressed(ebiten.KeyArrowDown) {
+		p2.y = min(p2.y+speed, sH-p2.height) // clamps to bottom of screen, taking the paddleHeight into account since the x,y is the TOP/left corner.
+	}
+
+	// GAME OPTIONS
+	// Fullscreen on/off -- easy!
+	if inpututil.IsKeyJustPressed(ebiten.KeyF) {
+		ebiten.SetFullscreen(!ebiten.IsFullscreen())
+	}
+}
+
+func (g *Game) Update() error {
+	handleInput()
+	return nil
+}
+
+func (g *Game) Draw(screen *ebiten.Image) {
+	ebitenutil.DebugPrint(screen, "Pong!")
+	p1.drawPaddle(screen)
+	p2.drawPaddle(screen)
+	b.drawBall(screen)
+}
+
+func (g *Game) Layout(outsideWidth, outsideHeight int) (screenWidth, screenHeight int) {
+	return sW, sH
+}
+
+func main() {
+	ebiten.SetWindowSize(640, 480)
+	ebiten.SetWindowTitle("GolangNYC Pong!")
+	reset()
+	if err := ebiten.RunGame(&Game{}); err != nil {
+		log.Fatal(err)
+	}
+}
+
+
+```
+
+## Step 7:

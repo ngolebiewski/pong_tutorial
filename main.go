@@ -20,10 +20,12 @@ const (
 	paddleWidth  = 5.0
 	paddleHeight = 50.0
 	speed        = 4.0
+	ballWidth    = 4.0
 )
 
 var p1 Paddle
 var p2 Paddle
+var b Ball
 
 type Game struct{}
 
@@ -33,12 +35,21 @@ type Paddle struct {
 	width  float32
 	height float32
 }
+type Ball struct {
+	x     float32
+	y     float32
+	width float32 // It is a square, width = length
+	dx    float32 // delta x
+	dy    float32 // delta y
+	v     float32 // velocity
+}
 
-// Sort of like a constructor function meets an Init
+// Sets the initial values for the player and ball entities
 func reset() {
 	// Let's center the Y value, which is half the screen height - half the paddle height!
 	p1 = Paddle{5.0, sH/2 - paddleHeight/2, paddleWidth, paddleHeight}
 	p2 = Paddle{sW - 5.0 - paddleWidth, sH/2 - paddleHeight/2, paddleWidth, paddleHeight}
+	b = Ball{sW/2 - ballWidth/2, sH/2 - ballWidth/2, ballWidth, 0, 0, 1}
 }
 
 func (p Paddle) drawPaddle(screen *ebiten.Image) {
@@ -46,6 +57,9 @@ func (p Paddle) drawPaddle(screen *ebiten.Image) {
 	vector.FillRect(screen, p.x, p.y, p.width, p.height, color.White, false)
 }
 
+func (b Ball) drawBall(screen *ebiten.Image) {
+	vector.FillRect(screen, b.x, b.y, b.width, b.width, color.White, false)
+}
 func handleInput() {
 	// PLAYER CONTROLS
 
@@ -83,6 +97,7 @@ func (g *Game) Draw(screen *ebiten.Image) {
 	ebitenutil.DebugPrint(screen, "Pong!")
 	p1.drawPaddle(screen)
 	p2.drawPaddle(screen)
+	b.drawBall(screen)
 }
 
 func (g *Game) Layout(outsideWidth, outsideHeight int) (screenWidth, screenHeight int) {
