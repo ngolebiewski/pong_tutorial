@@ -6,6 +6,7 @@ import (
 
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
+	"github.com/hajimehoshi/ebiten/v2/inpututil"
 	"github.com/hajimehoshi/ebiten/v2/vector"
 )
 
@@ -46,6 +47,8 @@ func (p Paddle) drawPaddle(screen *ebiten.Image) {
 }
 
 func handleInput() {
+	// PLAYER CONTROLS
+
 	//Player 1 up
 	if ebiten.IsKeyPressed(ebiten.KeyW) {
 		p1.y = max(p1.y-speed, 0) //clamps to top of screen
@@ -62,6 +65,12 @@ func handleInput() {
 	//Player 2 down
 	if ebiten.IsKeyPressed(ebiten.KeyArrowDown) {
 		p2.y = min(p2.y+speed, sH-p2.height) // clamps to bottom of screen, taking the paddleHeight into account since the x,y is the TOP/left corner.
+	}
+
+	// GAME OPTIONS
+	// Fullscreen on/off -- easy!
+	if inpututil.IsKeyJustPressed(ebiten.KeyF) {
+		ebiten.SetFullscreen(!ebiten.IsFullscreen())
 	}
 }
 

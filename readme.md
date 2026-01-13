@@ -551,3 +551,14 @@ func main() {
 	}
 }
 ```
+
+## Step 5: Make it Fullscreen
+
+Quick! Just add this in to the handleInput() function and you're all set. Note how this uses IsKeyJustPressed. Otherwise, pressing 'F' would pick up multiple taps, and would toggle a whole bunch of times.
+
+```go
+// Fullscreen on/off -- easy!
+	if inpututil.IsKeyJustPressed(ebiten.KeyF) {
+		ebiten.SetFullscreen(!ebiten.IsFullscreen())
+	}
+```
