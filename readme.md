@@ -858,3 +858,103 @@ func main() {
 ```
 
 
+## Step 8: THE GAME! Bounce ball off paddles, deflect of screen top and bottom, score points when passes left or right edge of screen. 
+
+This step is a lot in one step, but they are all kind of bundled together. Mostly in update
+
+1. First, lets make a player struct to hold the score
+
+```go
+type Player struct {
+	score int
+}
+```
+
+
+2. lets set up a var for Player1 and Player 2 and a resetPlayers() function that mirrors the reset() one. Basically, we will be reseting the paddle and ball positions WAY more often then reseting the score. If it was combined we'd always be setting the score back to 0
+
+```go
+func resetPlayers() {
+	player1 = Player{0}
+	player2 = Player{0}
+}
+```
+
+and in main()
+
+```go
+func main() {
+	ebiten.SetWindowSize(640, 480)
+	ebiten.SetWindowTitle("GolangNYC Pong!")
+	reset()
+	resetPlayers()
+	if err := ebiten.RunGame(&Game{}); err != nil {
+		log.Fatal(err)
+	}
+}
+```
+
+we'll print the scores to the console for now with a fmt print statement in the next step.
+
+3. AABB collision checking!
+Box [A] overlaps Box [B] only if:
+- A’s left < B’s right
+- A’s right > B’s left
+- A’s top < B’s bottom
+- A’s bottom > B’s top
+
+        ┌────────────┐
+        │            │
+        │   ┌───┐    │
+        │   │ A │    │
+        │   └───┘    │
+        │          B │
+        └────────────┘
+
+```go
+// a classic Axis Aligned Bounding Box Collission check
+func aabb(ax, ay, aw, ah, bx, by, bw, bh float32) bool {
+	return ax < bx+bw &&
+		ax+aw > bx &&
+		ay < by+bh &&
+		ay+ah > by
+}
+
+func (b *Ball) updateBall() {
+	//check for top/bottom screen hits to bounce.
+	//top || bottom
+	if b.y <= 0 || b.y >= sH-b.width {
+		b.vy = -b.vy
+	}
+	//check left -> if off screen player 2 scores a point and reset the ball and paddles to centered positions
+	if b.x <= 0 {
+		player2.score += 1
+		reset()
+		fmt.Println("Player 1: ", player1.score, "Player 2: ", player2.score)
+	}
+	//check right
+	if b.x >= sW {
+		player1.score += 1
+		reset()
+		fmt.Println("Player 1: ", player1.score, "Player 2: ", player2.score)
+	}
+	//check for paddle collision. Ball shouldn't know about Paddle, but this is a small game, so no point to abstract.
+	//Paddle 1
+	if aabb(b.x, b.y, b.width, b.width, p1.x, p1.y, p1.width, p1.height) && b.vx < 0 {
+		b.vx = -b.vx
+		b.vy += rand.Float32() / 3 * coinFlip()
+		b.v = min(maxSpeed, b.v+.5)
+	}
+
+	//Paddle 2
+	if aabb(b.x, b.y, b.width, b.width, p2.x, p2.y, p2.width, p2.height) && b.vx > 0 {
+		b.vx = -b.vx
+		b.vy += rand.Float32() / 3 * coinFlip()
+		b.v = min(maxSpeed, b.v+.5)
+	}
+
+	//at last, move the ball!
+	b.x = b.x + (b.v * b.vx)
+	b.y = b.y + (b.v * b.vy)
+}
+```

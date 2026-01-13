@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"image/color"
 	"log"
 	"math/rand/v2"
@@ -22,11 +23,14 @@ const (
 	paddleHeight = 50.0
 	speed        = 4.0
 	ballWidth    = 4.0
+	maxSpeed     = 5.0
 )
 
 var p1 Paddle
 var p2 Paddle
 var b Ball
+var player1 Player
+var player2 Player
 
 type Game struct{}
 
@@ -46,6 +50,10 @@ type Ball struct {
 	isInPlay bool    // false is the ready to serve the ball state. true is the ball is in play
 }
 
+type Player struct {
+	score int
+}
+
 // Sets the initial values for the player and ball entities.
 // In a game with more than three entities you'd make a constructor function that would help you drop in all the defaults, etc.
 func reset() {
@@ -53,6 +61,11 @@ func reset() {
 	p1 = Paddle{5.0, sH/2 - paddleHeight/2, paddleWidth, paddleHeight}
 	p2 = Paddle{sW - 5.0 - paddleWidth, sH/2 - paddleHeight/2, paddleWidth, paddleHeight}
 	b = Ball{sW/2 - ballWidth/2, sH/2 - ballWidth/2, ballWidth, 0, 0, 1, false}
+}
+
+func resetPlayers() {
+	player1 = Player{0}
+	player2 = Player{0}
 }
 
 func (p *Paddle) drawPaddle(screen *ebiten.Image) {
@@ -75,13 +88,55 @@ func coinFlip() float32 {
 // gives initial direction on serve
 func (b *Ball) serveBall() {
 	b.isInPlay = true //be explicit, rather than !b.isInPlay
-	//set initial dx to dy
+	//set initial velocity x and velocity y
 	b.vx = coinFlip()                      // uses a helper function to either start the ball going left or right, -1 or 1
 	b.vy = rand.Float32() * 3 * coinFlip() // how diagonal will it be?
 }
 
+// a classic Axis Aligned Bounding Box Collission check
+func aabb(ax, ay, aw, ah, bx, by, bw, bh float32) bool {
+	return ax < bx+bw &&
+		ax+aw > bx &&
+		ay < by+bh &&
+		ay+ah > by
+}
+
 func (b *Ball) updateBall() {
+	//check for top/bottom screen hits to bounce.
+	//top || bottom
+	if b.y <= 0 || b.y >= sH-b.width {
+		b.vy = -b.vy
+	}
+	//check left -> if off screen player 2 scores a point and reset the ball and paddles to centered positions
+	if b.x <= 0 {
+		player2.score += 1
+		reset()
+		fmt.Println("Player 1: ", player1.score, "Player 2: ", player2.score)
+	}
+	//check right
+	if b.x >= sW {
+		player1.score += 1
+		reset()
+		fmt.Println("Player 1: ", player1.score, "Player 2: ", player2.score)
+	}
+	//check for paddle collision. Ball shouldn't know about Paddle, but this is a small game, so no point to abstract.
+	//Paddle 1
+	if aabb(b.x, b.y, b.width, b.width, p1.x, p1.y, p1.width, p1.height) && b.vx < 0 {
+		b.vx = -b.vx
+		b.vy += rand.Float32() / 3 * coinFlip()
+		b.v = min(maxSpeed, b.v+.5)
+	}
+
+	//Paddle 2
+	if aabb(b.x, b.y, b.width, b.width, p2.x, p2.y, p2.width, p2.height) && b.vx > 0 {
+		b.vx = -b.vx
+		b.vy += rand.Float32() / 3 * coinFlip()
+		b.v = min(maxSpeed, b.v+.5)
+	}
+
+	//at last, move the ball!
 	b.x = b.x + (b.v * b.vx)
+	b.y = b.y + (b.v * b.vy)
 }
 
 func handleInput() {
@@ -138,6 +193,7 @@ func main() {
 	ebiten.SetWindowSize(640, 480)
 	ebiten.SetWindowTitle("GolangNYC Pong!")
 	reset()
+	resetPlayers()
 	if err := ebiten.RunGame(&Game{}); err != nil {
 		log.Fatal(err)
 	}
