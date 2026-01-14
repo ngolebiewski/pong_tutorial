@@ -958,3 +958,19 @@ func (b *Ball) updateBall() {
 	b.y = b.y + (b.v * b.vy)
 }
 ```
+
+## Step 9: Show the Player Scores on Screen
+
+This one is easy, as we're just using the debug print option within Ebitengine, which is a nice pixel font. We'll take out the "pong" and add this in. 
+
+```go
+func (g *Game) Draw(screen *ebiten.Image) {
+	//Show player score
+	ebitenutil.DebugPrintAt(screen, strconv.Itoa(player1.score), 40, 10)
+	ebitenutil.DebugPrintAt(screen, strconv.Itoa(player2.score), sW-40, 10)
+
+	p1.drawPaddle(screen)
+	p2.drawPaddle(screen)
+	b.drawBall(screen)
+}
+```

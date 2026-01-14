@@ -5,6 +5,7 @@ import (
 	"image/color"
 	"log"
 	"math/rand/v2"
+	"strconv"
 
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
@@ -93,7 +94,7 @@ func (b *Ball) serveBall() {
 	b.vy = rand.Float32() * 3 * coinFlip() // how diagonal will it be?
 }
 
-// a classic Axis Aligned Bounding Box Collission check
+// a classic Axis-Aligned Bounding-Box Collission check
 func aabb(ax, ay, aw, ah, bx, by, bw, bh float32) bool {
 	return ax < bx+bw &&
 		ax+aw > bx &&
@@ -179,7 +180,10 @@ func (g *Game) Update() error {
 }
 
 func (g *Game) Draw(screen *ebiten.Image) {
-	ebitenutil.DebugPrint(screen, "Pong!")
+	//Show player score
+	ebitenutil.DebugPrintAt(screen, strconv.Itoa(player1.score), 40, 10)
+	ebitenutil.DebugPrintAt(screen, strconv.Itoa(player2.score), sW-40, 10)
+
 	p1.drawPaddle(screen)
 	p2.drawPaddle(screen)
 	b.drawBall(screen)
