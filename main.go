@@ -92,8 +92,19 @@ func (p *Paddle) drawPaddle(screen *ebiten.Image) {
 func (b *Ball) drawBall(screen *ebiten.Image) {
 	if b.isGopher {
 		op := &ebiten.DrawImageOptions{}
-		// This moves the image to the ball's position
+
+		// Flip the Gopher if it is moving left (vx < 0), default image looks to the right.
+		if b.vx < 0 {
+			op.GeoM.Scale(-1, 1)
+			// After scaling by -1, the image is to the left of the origin.
+			// We move it back by its width so it occupies the same space.
+			op.GeoM.Translate(float64(goBall.width), 0)
+		}
+
+		// Apply the scale that we are transforming the Gopher (i.e. 1/2 as big or twice as big!!!)
 		op.GeoM.Scale(gopherScale, gopherScale)
+
+		// 3. Move the Gopher to the actual ball position on screen
 		op.GeoM.Translate(float64(b.x), float64(b.y))
 
 		screen.DrawImage(goBall.img, op)
