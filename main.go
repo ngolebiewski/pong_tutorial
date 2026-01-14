@@ -25,7 +25,9 @@ const (
 	speed        = 4.0
 	ballWidth    = 4.0
 	maxSpeed     = 5.0
-	deadZone     = .3
+
+	deadZone    = .3
+	gopherScale = 1.0
 )
 
 var p1 Paddle
@@ -46,10 +48,12 @@ type Ball struct {
 	x        float32
 	y        float32
 	width    float32 // It is a square, width = length
+	height   float32
 	vx       float32 // velocity x
 	vy       float32 // velocity y
 	v        float32 // velocity
 	isInPlay bool    // false is the ready to serve the ball state. true is the ball is in play
+	isGopher bool
 }
 
 type Player struct {
@@ -62,7 +66,11 @@ func reset() {
 	// Let's center the Y value, which is half the screen height - half the paddle height!
 	p1 = Paddle{5.0, sH/2 - paddleHeight/2, paddleWidth, paddleHeight}
 	p2 = Paddle{sW - 5.0 - paddleWidth, sH/2 - paddleHeight/2, paddleWidth, paddleHeight}
-	b = Ball{sW/2 - ballWidth/2, sH/2 - ballWidth/2, ballWidth, 0, 0, 1, false}
+	b.x = sW/2 - ballWidth/2
+	b.y = sH/2 - ballWidth/2
+	b.vx, b.vy = 0, 0
+	b.v = 1
+	b.isInPlay = false
 }
 
 func resetPlayers() {
@@ -76,7 +84,16 @@ func (p *Paddle) drawPaddle(screen *ebiten.Image) {
 }
 
 func (b *Ball) drawBall(screen *ebiten.Image) {
-	vector.FillRect(screen, b.x, b.y, b.width, b.width, color.White, false)
+	if b.isGopher {
+		op := &ebiten.DrawImageOptions{}
+		// This moves the image to the ball's position
+		op.GeoM.Scale(1/gopherScale, 1/gopherScale)
+		op.GeoM.Translate(float64(b.x), float64(b.y))
+
+		screen.DrawImage(goBall.img, op)
+	} else {
+		vector.FillRect(screen, b.x, b.y, b.width, b.width, color.White, false)
+	}
 }
 
 // Emulates a coinflip and used to switch between + and - numbers in practice
@@ -122,14 +139,14 @@ func (b *Ball) updateBall() {
 	}
 	//check for paddle collision. Ball shouldn't know about Paddle, but this is a small game, so no point to abstract.
 	//Paddle 1
-	if aabb(b.x, b.y, b.width, b.width, p1.x, p1.y, p1.width, p1.height) && b.vx < 0 {
+	if aabb(b.x, b.y, b.width, b.height, p1.x, p1.y, p1.width, p1.height) && b.vx < 0 {
 		b.vx = -b.vx
 		b.vy += rand.Float32() / 3 * coinFlip()
 		b.v = min(maxSpeed, b.v+.5)
 	}
 
 	//Paddle 2
-	if aabb(b.x, b.y, b.width, b.width, p2.x, p2.y, p2.width, p2.height) && b.vx > 0 {
+	if aabb(b.x, b.y, b.width, b.height, p2.x, p2.y, p2.width, p2.height) && b.vx > 0 {
 		b.vx = -b.vx
 		b.vy += rand.Float32() / 3 * coinFlip()
 		b.v = min(maxSpeed, b.v+.5)
@@ -186,6 +203,19 @@ func handleInput() {
 		ebiten.SetFullscreen(!ebiten.IsFullscreen())
 	}
 
+	if inpututil.IsKeyJustPressed(ebiten.KeyG) {
+		b.isGopher = !b.isGopher
+		if b.isGopher {
+			// Match the hitbox to the 1/2 visual scale
+			b.width = float32(goBall.width) / gopherScale
+			b.height = float32(goBall.height) / gopherScale
+		} else {
+			b.height = ballWidth
+			b.width = ballWidth
+		}
+		fmt.Println("Gopher Ball?", b.isGopher)
+	}
+
 	// RESET On gamepad controller button 8 is the Select Button
 	if inpututil.IsKeyJustPressed(ebiten.KeyR) ||
 		ebiten.IsGamepadButtonPressed(0, ebiten.GamepadButton8) ||
@@ -218,6 +248,7 @@ func (g *Game) Layout(outsideWidth, outsideHeight int) (screenWidth, screenHeigh
 func main() {
 	ebiten.SetWindowSize(640, 480)
 	ebiten.SetWindowTitle("GolangNYC Pong!")
+	b = Ball{sW/2 - ballWidth/2, sH/2 - ballWidth/2, ballWidth, ballWidth, 0, 0, 1, false, false}
 	reset()
 	resetPlayers()
 	if err := ebiten.RunGame(&Game{}); err != nil {
