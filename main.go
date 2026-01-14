@@ -66,8 +66,14 @@ func reset() {
 	// Let's center the Y value, which is half the screen height - half the paddle height!
 	p1 = Paddle{5.0, sH/2 - paddleHeight/2, paddleWidth, paddleHeight}
 	p2 = Paddle{sW - 5.0 - paddleWidth, sH/2 - paddleHeight/2, paddleWidth, paddleHeight}
-	b.x = sW/2 - ballWidth/2
-	b.y = sH/2 - ballWidth/2
+
+	if b.isGopher {
+		b.x = sW/2 - b.width/2*gopherScale
+		b.y = sH/2 - b.height/2*gopherScale
+	} else {
+		b.x = sW/2 - ballWidth/2
+		b.y = sH/2 - ballWidth/2
+	}
 	b.vx, b.vy = 0, 0
 	b.v = 1
 	b.isInPlay = false
