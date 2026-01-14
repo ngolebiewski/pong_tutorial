@@ -25,6 +25,7 @@ const (
 	speed        = 4.0
 	ballWidth    = 4.0
 	maxSpeed     = 5.0
+	deadZone     = .3
 )
 
 var p1 Paddle
@@ -144,25 +145,38 @@ func handleInput() {
 	// PLAYER CONTROLS
 
 	//Player 1 up
-	if ebiten.IsKeyPressed(ebiten.KeyW) {
+	if ebiten.IsKeyPressed(ebiten.KeyW) ||
+		ebiten.StandardGamepadAxisValue(0, ebiten.StandardGamepadAxisLeftStickVertical) < -deadZone {
 		p1.y = max(p1.y-speed, 0) //clamps to top of screen
 	}
 	//Player 1 down
-	if ebiten.IsKeyPressed(ebiten.KeyS) {
+	if ebiten.IsKeyPressed(ebiten.KeyS) ||
+		ebiten.StandardGamepadAxisValue(0, ebiten.StandardGamepadAxisLeftStickVertical) > deadZone {
 		p1.y = min(p1.y+speed, sH-p1.height) // clamps to bottom of screen, taking the paddleHeight into account since the x,y is the TOP/left corner.
 	}
 
 	//Player 2 up
-	if ebiten.IsKeyPressed(ebiten.KeyArrowUp) {
+	if ebiten.IsKeyPressed(ebiten.KeyArrowUp) ||
+		ebiten.StandardGamepadAxisValue(1, ebiten.StandardGamepadAxisLeftStickVertical) < -deadZone {
 		p2.y = max(p2.y-speed, 0) //clamps to top of screen
 	}
+
 	//Player 2 down
-	if ebiten.IsKeyPressed(ebiten.KeyArrowDown) {
+	if ebiten.IsKeyPressed(ebiten.KeyArrowDown) ||
+		ebiten.StandardGamepadAxisValue(1, ebiten.StandardGamepadAxisLeftStickVertical) > deadZone {
 		p2.y = min(p2.y+speed, sH-p2.height) // clamps to bottom of screen, taking the paddleHeight into account since the x,y is the TOP/left corner.
 	}
 
 	//Ball Start
-	if b.isInPlay == false && (ebiten.IsKeyPressed(ebiten.KeySpace) || ebiten.IsKeyPressed(ebiten.KeyEnter) || ebiten.IsMouseButtonPressed(ebiten.MouseButton0)) {
+	if b.isInPlay == false && (ebiten.IsKeyPressed(ebiten.KeySpace) ||
+		ebiten.IsKeyPressed(ebiten.KeyEnter) ||
+		ebiten.IsMouseButtonPressed(ebiten.MouseButton0) ||
+		ebiten.IsGamepadButtonPressed(0, ebiten.GamepadButton0) ||
+		ebiten.IsGamepadButtonPressed(0, ebiten.GamepadButton1) ||
+		ebiten.IsGamepadButtonPressed(0, ebiten.GamepadButton2) ||
+		ebiten.IsGamepadButtonPressed(1, ebiten.GamepadButton0) ||
+		ebiten.IsGamepadButtonPressed(1, ebiten.GamepadButton1) ||
+		ebiten.IsGamepadButtonPressed(1, ebiten.GamepadButton2)) {
 		b.serveBall()
 	}
 
@@ -170,6 +184,14 @@ func handleInput() {
 	// Fullscreen on/off -- easy!
 	if inpututil.IsKeyJustPressed(ebiten.KeyF) {
 		ebiten.SetFullscreen(!ebiten.IsFullscreen())
+	}
+
+	// RESET
+	if inpututil.IsKeyJustPressed(ebiten.KeyR) ||
+		ebiten.IsGamepadButtonPressed(0, ebiten.GamepadButton8) ||
+		ebiten.IsGamepadButtonPressed(1, ebiten.GamepadButton8) {
+		reset()
+		resetPlayers()
 	}
 }
 

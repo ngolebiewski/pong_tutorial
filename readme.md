@@ -974,3 +974,71 @@ func (g *Game) Draw(screen *ebiten.Image) {
 	b.drawBall(screen)
 }
 ```
+
+## Step 10: The SNES Game Controller update
+
+Keyboards are nice and all, but Super Nintendo controllers are much exciting user experience!
+
+Ebitengine has support built in. I have these wireless USB SNES style controllers, but theoretically it can work with XBox, Switch, NES, whatever syle gamepads, which just elevate the whole experience.
+
+We're going to update the handleInput function here.
+
+There is also a great tool within ebitengine to see what your controllers are mapped to.
+https://ebitengine.org/en/examples/gamepad.html
+
+You can see the game controller taps work there way into making the handleInput an albatross or a blue whale (largest ocean creature) of a function. Would make sense to take out into a inputs.go file in package main.
+
+The main pattern we see in
+```	ebiten.IsGamepadButtonPressed(1, ebiten.GamepadButton2)) ```
+is that the function talkeas a controller nummber 0 for controller 1, 1 for controller 2... you standard array stuff and then the button that needs to get mapped. On these SNES controllers its:
+0 -> Y
+1 -> B
+2 -> A
+
+8 -> SELECT
+
+verical axis for the directional pad
+
+```go
+func handleInput() {
+	// PLAYER CONTROLS
+
+	//Player 1 up
+	if ebiten.IsKeyPressed(ebiten.KeyW) ||
+		ebiten.StandardGamepadAxisValue(0, ebiten.StandardGamepadAxisLeftStickVertical) < -deadZone {
+		p1.y = max(p1.y-speed, 0) //clamps to top of screen
+	}
+	//Player 1 down
+	if ebiten.IsKeyPressed(ebiten.KeyS) ||
+		ebiten.StandardGamepadAxisValue(0, ebiten.StandardGamepadAxisLeftStickVertical) > deadZone {
+		p1.y = min(p1.y+speed, sH-p1.height) // clamps to bottom of screen, taking the paddleHeight into account since the x,y is the TOP/left corner.
+	}
+
+	//Player 2 up
+	if ebiten.IsKeyPressed(ebiten.KeyArrowUp) ||
+		ebiten.StandardGamepadAxisValue(1, ebiten.StandardGamepadAxisLeftStickVertical) < -deadZone {
+		p2.y = max(p2.y-speed, 0) //clamps to top of screen
+	}
+
+	//Player 2 down
+	if ebiten.IsKeyPressed(ebiten.KeyArrowDown) ||
+		ebiten.StandardGamepadAxisValue(1, ebiten.StandardGamepadAxisLeftStickVertical) > deadZone {
+		p2.y = min(p2.y+speed, sH-p2.height) // clamps to bottom of screen, taking the paddleHeight into account since the x,y is the TOP/left corner.
+	}
+
+	//Ball Start
+	if b.isInPlay == false && (ebiten.IsKeyPressed(ebiten.KeySpace) ||
+		ebiten.IsKeyPressed(ebiten.KeyEnter) ||
+		ebiten.IsMouseButtonPressed(ebiten.MouseButton0) ||
+		ebiten.IsGamepadButtonPressed(0, ebiten.GamepadButton0) ||
+		ebiten.IsGamepadButtonPressed(0, ebiten.GamepadButton1) ||
+		ebiten.IsGamepadButtonPressed(0, ebiten.GamepadButton2) ||
+		ebiten.IsGamepadButtonPressed(1, ebiten.GamepadButton0) ||
+		ebiten.IsGamepadButtonPressed(1, ebiten.GamepadButton1) ||
+		ebiten.IsGamepadButtonPressed(1, ebiten.GamepadButton2)) {
+		b.serveBall()
+	}
+}
+    ```
+
+##
