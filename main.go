@@ -21,7 +21,7 @@ const (
 	sW           = 320
 	sH           = 240
 	paddleWidth  = 5.0
-	paddleHeight = 50.0
+	paddleHeight = 30.0
 	speed        = 4.0
 	ballWidth    = 4.0
 	maxSpeed     = 5.0
@@ -92,10 +92,10 @@ func (b *Ball) serveBall() {
 	b.isInPlay = true //be explicit, rather than !b.isInPlay
 	//set initial velocity x and velocity y
 	b.vx = coinFlip()                      // uses a helper function to either start the ball going left or right, -1 or 1
-	b.vy = rand.Float32() * 3 * coinFlip() // how diagonal will it be?
+	b.vy = rand.Float32() * 3 * coinFlip() // how diagonal will it be? The '*3' adds eccentricity to the angle which makes for a more dynamic game
 }
 
-// a classic Axis-Aligned Bounding-Box Collission check
+// a classic Axis-Aligned Bounding-Box Collission check that check if 2 rectangles intersect.
 func aabb(ax, ay, aw, ah, bx, by, bw, bh float32) bool {
 	return ax < bx+bw &&
 		ax+aw > bx &&
@@ -104,8 +104,7 @@ func aabb(ax, ay, aw, ah, bx, by, bw, bh float32) bool {
 }
 
 func (b *Ball) updateBall() {
-	//check for top/bottom screen hits to bounce.
-	//top || bottom
+	//check for top || bottom screen colissions to cause a bounce. Note that we invert the velocity of the y to change the direction.
 	if b.y <= 0 || b.y >= sH-b.width {
 		b.vy = -b.vy
 	}
@@ -144,30 +143,31 @@ func (b *Ball) updateBall() {
 func handleInput() {
 	// PLAYER CONTROLS
 
-	//Player 1 up
+	// Player 1 up
+	// Note the 'deadZone' constant is to eliminate jitter (i,e, subtly pressed, false positves, etc on the directional pad/control)
 	if ebiten.IsKeyPressed(ebiten.KeyW) ||
 		ebiten.StandardGamepadAxisValue(0, ebiten.StandardGamepadAxisLeftStickVertical) < -deadZone {
 		p1.y = max(p1.y-speed, 0) //clamps to top of screen
 	}
-	//Player 1 down
+	// Player 1 down
 	if ebiten.IsKeyPressed(ebiten.KeyS) ||
 		ebiten.StandardGamepadAxisValue(0, ebiten.StandardGamepadAxisLeftStickVertical) > deadZone {
 		p1.y = min(p1.y+speed, sH-p1.height) // clamps to bottom of screen, taking the paddleHeight into account since the x,y is the TOP/left corner.
 	}
 
-	//Player 2 up
+	// Player 2 up
 	if ebiten.IsKeyPressed(ebiten.KeyArrowUp) ||
 		ebiten.StandardGamepadAxisValue(1, ebiten.StandardGamepadAxisLeftStickVertical) < -deadZone {
 		p2.y = max(p2.y-speed, 0) //clamps to top of screen
 	}
 
-	//Player 2 down
+	// Player 2 down
 	if ebiten.IsKeyPressed(ebiten.KeyArrowDown) ||
 		ebiten.StandardGamepadAxisValue(1, ebiten.StandardGamepadAxisLeftStickVertical) > deadZone {
 		p2.y = min(p2.y+speed, sH-p2.height) // clamps to bottom of screen, taking the paddleHeight into account since the x,y is the TOP/left corner.
 	}
 
-	//Ball Start
+	// Ball Start with Space, Enter, Mouse, or GAMEPAD: Y,B,A
 	if b.isInPlay == false && (ebiten.IsKeyPressed(ebiten.KeySpace) ||
 		ebiten.IsKeyPressed(ebiten.KeyEnter) ||
 		ebiten.IsMouseButtonPressed(ebiten.MouseButton0) ||
@@ -186,7 +186,7 @@ func handleInput() {
 		ebiten.SetFullscreen(!ebiten.IsFullscreen())
 	}
 
-	// RESET
+	// RESET On gamepad controller button 8 is the Select Button
 	if inpututil.IsKeyJustPressed(ebiten.KeyR) ||
 		ebiten.IsGamepadButtonPressed(0, ebiten.GamepadButton8) ||
 		ebiten.IsGamepadButtonPressed(1, ebiten.GamepadButton8) {

@@ -999,6 +999,8 @@ is that the function talkeas a controller nummber 0 for controller 1, 1 for cont
 
 verical axis for the directional pad
 
+By the way, I am going to modify the paddleHeight to be 30 rather than 50 -- it is too easy to hit the ball. Just up in the constants at top.
+
 ```go
 func handleInput() {
 	// PLAYER CONTROLS
@@ -1039,6 +1041,15 @@ func handleInput() {
 		b.serveBall()
 	}
 }
-    ```
+``` 
 
-##
+## Step 11: Extra Credit
+
+1. Add in a little 'AI' to run controller 2 so a player can play against the computer
+2. Make power ups that make the ball go slower, make it sticky, or lengthen your paddle
+3. Use particles and make the ball trail flames when it is at top speed.
+4. Randomly have new color schemes each round
+5. Add in a net
+6. Make your own game with your own twists.
+7. Turn the ball into a GOPHER!
+8. Thanks!
