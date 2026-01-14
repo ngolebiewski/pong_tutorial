@@ -1056,3 +1056,7 @@ func handleInput() {
 
 Added in press "G" to turn the ball into the Go Gopher.
 ![Gopher as the pong ball](images/gopher-pong.png)
+
+## Step 12: Publish online via WASM
+
+https://ebitengine.org/en/documents/webassembly.html
