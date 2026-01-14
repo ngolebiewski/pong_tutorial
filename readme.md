@@ -1,5 +1,7 @@
 # Code Pong in Go with Ebitengine Tutorial/A live coding talk by Nick Golebiewski.
 
+![Animated GIF of pong, with a Go Gopher bouncing as the ball off paddles](images/gopher-pong.gif)
+
 Pong is the best known early video game! So lets make that with Go using the open source Ebitengine Game Engine developed by Hajime Hoshi. 
 
 Why? Go is primarily known as a backend language, used for DevOps (Development Operations), REST APIs, Cloud Computing, Network Engineering, Site Reliability Engineering etc. out in the real digital world. It is also fast and compiles down to a binary. I am talking to a room of Go Engineers, so I should ask you how you use Go in 'Production' for live sites.
