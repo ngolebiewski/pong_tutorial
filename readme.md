@@ -1053,3 +1053,6 @@ func handleInput() {
 6. Make your own game with your own twists.
 7. Turn the ball into a GOPHER!
 8. Thanks!
+
+Added in press "G" to turn the ball into the Go Gopher.
+![Gopher as the pong ball](images/gopher-pong.png)

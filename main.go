@@ -87,7 +87,7 @@ func (b *Ball) drawBall(screen *ebiten.Image) {
 	if b.isGopher {
 		op := &ebiten.DrawImageOptions{}
 		// This moves the image to the ball's position
-		op.GeoM.Scale(1/gopherScale, 1/gopherScale)
+		op.GeoM.Scale(gopherScale, gopherScale)
 		op.GeoM.Translate(float64(b.x), float64(b.y))
 
 		screen.DrawImage(goBall.img, op)
@@ -207,8 +207,8 @@ func handleInput() {
 		b.isGopher = !b.isGopher
 		if b.isGopher {
 			// Match the hitbox to the 1/2 visual scale
-			b.width = float32(goBall.width) / gopherScale
-			b.height = float32(goBall.height) / gopherScale
+			b.width = float32(goBall.width) * gopherScale
+			b.height = float32(goBall.height) * gopherScale
 		} else {
 			b.height = ballWidth
 			b.width = ballWidth
