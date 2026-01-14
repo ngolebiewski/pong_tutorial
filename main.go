@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"image/color"
 	"log"
 	"math/rand/v2"
@@ -127,6 +126,7 @@ func (b *Ball) serveBall() {
 	//set initial velocity x and velocity y
 	b.vx = coinFlip()                      // uses a helper function to either start the ball going left or right, -1 or 1
 	b.vy = rand.Float32() * 3 * coinFlip() // how diagonal will it be? The '*3' adds eccentricity to the angle which makes for a more dynamic game
+	playBounce("start")
 }
 
 // a classic Axis-Aligned Bounding-Box Collission check that check if 2 rectangles intersect.
@@ -141,18 +141,19 @@ func (b *Ball) updateBall() {
 	//check for top || bottom screen colissions to cause a bounce. Note that we invert the velocity of the y to change the direction.
 	if b.y <= 0 || b.y >= sH-b.width {
 		b.vy = -b.vy
+		playBounce("wall")
 	}
 	//check left -> if off screen player 2 scores a point and reset the ball and paddles to centered positions
 	if b.x <= 0 {
 		player2.score += 1
+		playBounce("out")
 		reset()
-		fmt.Println("Player 1: ", player1.score, "Player 2: ", player2.score)
 	}
 	//check right
 	if b.x >= sW {
 		player1.score += 1
+		playBounce("out")
 		reset()
-		fmt.Println("Player 1: ", player1.score, "Player 2: ", player2.score)
 	}
 	//check for paddle collision. Ball shouldn't know about Paddle, but this is a small game, so no point to abstract.
 	//Paddle 1
@@ -160,6 +161,7 @@ func (b *Ball) updateBall() {
 		b.vx = -b.vx
 		b.vy += rand.Float32() / 3 * coinFlip()
 		b.v = min(maxSpeed, b.v+.5)
+		playBounce("paddle")
 	}
 
 	//Paddle 2
@@ -167,6 +169,7 @@ func (b *Ball) updateBall() {
 		b.vx = -b.vx
 		b.vy += rand.Float32() / 3 * coinFlip()
 		b.v = min(maxSpeed, b.v+.5)
+		playBounce("paddle")
 	}
 
 	//at last, move the ball!
@@ -230,7 +233,6 @@ func handleInput() {
 			b.height = ballWidth
 			b.width = ballWidth
 		}
-		fmt.Println("Gopher Ball?", b.isGopher)
 	}
 
 	// RESET On gamepad controller button 8 is the Select Button
