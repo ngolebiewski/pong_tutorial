@@ -1,8 +1,7 @@
- [build.environment]
-  2   GO_VERSION = "1.25.1"
-  3 
-  4   [build]
-  5   command = "cp $(go env GOROOT)/lib/wasm/wasm_exec.js . && env GOOS=js GOAR    CH=wasm go build -o gopherpong.wasm github.com/ngolebiewski/pong_tutorial"
-  6 ··
-  7   publish = "."
-~                         
+[build.environment]
+  GO_VERSION = "1.25.1"
+
+  [build]
+  command = "cp $(go env GOROOT)/lib/wasm/wasm_exec.js . && env GOOS=js GOARCH=wasm go build -o gopherpong.wasm github.com/ngolebiewski/pong_tutorial"
+  
+  publish = "."
